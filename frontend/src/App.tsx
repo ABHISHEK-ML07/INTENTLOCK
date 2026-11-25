@@ -220,7 +220,6 @@ function App() {
     setContract(null);
     setReport(null);
     setError("");
-    setTask(DEFAULT_TASK);
     setDomains("localhost");
     setActiveView("overview");
     addEvent("Workspace reset", "Ready for a new intent contract.", "neutral");
@@ -341,16 +340,16 @@ function App() {
                     <span className="panel-tag">INPUT</span>
                   </div>
                   <label className="field-label" htmlFor="task">YOUR INSTRUCTION</label>
-                  <textarea id="task" value={task} onChange={(e) => setTask(e.target.value)} rows={4} placeholder="Describe your task, limits and actions the agent must not take…"/>
+                  <textarea id="task" value={task} onChange={(e) => setTask(e.target.value)} rows={4} disabled={busy !== null || Boolean(contract)} placeholder="Describe your task, limits and actions the agent must not take…"/>
                   <div className="prompt-hint"><Sparkles size={13}/> Be explicit about price basis, distance, and actions that are off-limits.</div>
                   <button className="advanced-toggle" onClick={() => setShowAdvanced(!showAdvanced)}>
                     <Globe2 size={15}/> Website permissions <span className="advanced-value">{domains || "No domains selected"}</span><ChevronDown size={15} className={showAdvanced ? "rotate" : ""}/>
                   </button>
                   {showAdvanced && (
                     <div className="advanced-box">
-                      <label className="field-label" htmlFor="domains">ALLOWED DOMAINS <span>Comma-separated hostnames</span></label>
-                      <input id="domains" value={domains} onChange={(e) => setDomains(e.target.value)} placeholder="localhost"/>
-                      <div className="field-note"><LockKeyhole size={13}/> The demo is restricted to localhost. Do not add external domains.</div>
+                      <label className="field-label" htmlFor="domains">ALLOWED DOMAIN <span>Fixed for this isolated prototype</span></label>
+                      <input id="domains" value="localhost" readOnly aria-readonly="true" />
+                      <div className="field-note"><LockKeyhole size={13}/> Only the three synthetic localhost hotel pages can be visited. External domains are disabled.</div>
                     </div>
                   )}
                   <div className="panel-actions">
