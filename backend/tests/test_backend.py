@@ -67,8 +67,25 @@ def test_unconfirmed_contract_denies_actions():
         "Find a refundable hotel within 5 km for under ₹5,000 total.",
         ["hotels.demo.local"],
     )
-    action = ActionProposal(action_type=ActionType.READ, label="Read hotel page")
+    action = ActionProposal(action_type=ActionType.READ, label="Read hotel page", target_url="https://hotels.demo.local/search")
     assert evaluate_action(contract, action).decision == Decision.DENY
+
+
+def test_non_recommendation_action_requires_target_url():
+    import pytest
+    from pydantic import ValidationError
+
+    with pytest.raises(ValidationError):
+        ActionProposal(action_type=ActionType.READ, label="Read page")
+
+
+def test_compiler_does_not_misread_non_refundable_as_refundable():
+    contract = compile_contract(
+        "Find a non-refundable hotel within 5 km for under ₹5,000 total.",
+        ["hotels.demo.local"],
+    )
+    assert contract.constraints.refundable_required is False
+    assert any("whether the offer must be refundable" in item for item in contract.clarification_required)
 
 
 def test_domain_allowlist_blocks_lookalike_domain():
