@@ -461,7 +461,7 @@ function Constraint({ icon, label, value, detail }: { icon: ReactNode; label: st
   return <div className="constraint-tile"><div className="constraint-head">{icon}<span>{label}</span></div><strong>{value}</strong><small>{detail}</small></div>;
 }
 
-function Metric({ label, value, icon, tone }: { label: string; value: number; icon: React.ReactNode; tone: string }) {
+function Metric({ label, value, icon, tone }: { label: string; value: number; icon: ReactNode; tone: string }) {
   return <div className={`metric-card ${tone}`}><div className="metric-icon">{icon}</div><div><span>{label}</span><strong>{value}</strong></div></div>;
 }
 
