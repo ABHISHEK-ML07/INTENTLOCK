@@ -100,13 +100,17 @@ def test_domain_allowlist_blocks_lookalike_domain():
 
 def test_prohibited_booking_is_denied_even_if_approval_flag_is_true():
     action = ActionProposal(
-        action_type=ActionType.BOOK, label="Book room", user_approval_granted=True
+        action_type=ActionType.BOOK, label="Book room",
+        target_url="https://hotels.demo.local/checkout", user_approval_granted=True
     )
     assert evaluate_action(make_contract(), action).decision == Decision.DENY
 
 
 def test_sensitive_form_submission_pauses_for_approval():
-    action = ActionProposal(action_type=ActionType.SUBMIT_FORM, label="Submit form")
+    action = ActionProposal(
+        action_type=ActionType.SUBMIT_FORM, label="Submit form",
+        target_url="https://hotels.demo.local/application"
+    )
     assert evaluate_action(make_contract(), action).decision == Decision.PAUSE
 
 
