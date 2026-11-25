@@ -505,7 +505,7 @@ function EvidenceView({ report, maxPrice, onReturn }: { report: DemoReport | nul
         <article className="panel evidence-card" key={offer.hotel_id}>
           <div className="evidence-card-head"><div><span className="section-index">OFFER / {offer.hotel_id.toUpperCase()}</span><h3>{offer.hotel_name}</h3></div><span className={`decision-badge ${offer.decision}`}>{offer.decision.toUpperCase()}</span></div>
           <div className="evidence-table">
-            <EvidenceRow claim="Final checkout total" value={money(offer.final_total_inr)} source={offer.evidence_sources[2]} result={Number(offer.final_total_inr) <= 5000 ? "Within demo cap" : "Over demo cap"} good={Number(offer.final_total_inr) <= 5000}/>
+            <EvidenceRow claim="Final checkout total" value={money(offer.final_total_inr)} source={offer.evidence_sources[2]} result={Number(offer.final_total_inr) <= Number(maxPrice ?? Infinity) ? "Within contract cap" : "Over contract cap"} good={Number(offer.final_total_inr) <= Number(maxPrice ?? Infinity)}/>
             <EvidenceRow claim="Selected room refundability" value={offer.detailed_cancellation_policy} source={offer.evidence_sources[1]} result={offer.marketing_policy_conflict ? "Conflicts with marketing" : "Policy captured"} good={!offer.marketing_policy_conflict}/>
             <EvidenceRow claim="Distance" value={`${offer.distance_km} km`} source={offer.evidence_sources[0]} result="Captured from demo page" good/>
           </div>
