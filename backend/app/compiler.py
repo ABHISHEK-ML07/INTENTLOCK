@@ -61,7 +61,12 @@ def compile_contract(task: str, allowed_domains: Iterable[str] = ()) -> IntentCo
     price = _extract_price(task)
     distance = _extract_distance(task)
     lowered = task.lower()
-    refundable = any(term in lowered for term in ("refundable", "free cancellation", "free-cancellation"))
+    negated_refund_terms = ("non-refundable", "non refundable", "not refundable", "no free cancellation")
+    refund_requirement_ambiguous = any(term in lowered for term in negated_refund_terms)
+    refundable = (
+        not refund_requirement_ambiguous
+        and any(term in lowered for term in ("refundable", "free cancellation", "free-cancellation"))
+    )
 
     clarifications: list[str] = []
     assumptions: list[str] = []
@@ -72,7 +77,7 @@ def compile_contract(task: str, allowed_domains: Iterable[str] = ()) -> IntentCo
     if "hotel" in lowered or "booking" in lowered:
         if distance is None:
             clarifications.append("Specify a maximum distance and the location from which distance should be measured.")
-        if not refundable:
+        if not refundable or refund_requirement_ambiguous:
             clarifications.append("Clarify whether the offer must be refundable.")
     if not allowed_domains:
         clarifications.append("Select the websites/domains the browser is allowed to visit.")
