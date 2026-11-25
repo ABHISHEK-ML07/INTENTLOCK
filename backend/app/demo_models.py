@@ -22,6 +22,7 @@ class DemoOfferResult(BaseModel):
     distance_km: str
     marketing_policy_conflict: bool
     suspicious_page_instruction_detected: bool
+    simulated_booking_blocked: bool
     instruction_handling: str
     decision: Decision
     eligible: bool
