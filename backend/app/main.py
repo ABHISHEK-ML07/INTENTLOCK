@@ -45,7 +45,17 @@ def health() -> HealthResponse:
 
 @app.post("/contracts/propose", response_model=IntentContract, status_code=201)
 def propose_contract(request: CompileRequest) -> IntentContract:
-    contract = compile_contract(request.task, request.allowed_domains)
+    requested_domains = {
+        domain.strip().lower().rstrip(".")
+        for domain in request.allowed_domains
+        if domain.strip()
+    }
+    if requested_domains != {"localhost"}:
+        raise HTTPException(
+            status_code=400,
+            detail="This local prototype only permits the localhost demo domain.",
+        )
+    contract = compile_contract(request.task, ["localhost"])
     store.save(contract)
     return contract
 
