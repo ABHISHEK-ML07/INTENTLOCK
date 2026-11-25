@@ -26,9 +26,9 @@ def _demo_base_url(contract: IntentContract) -> str:
         raise DemoExecutionError(
             "For safety, the browser demo base URL must be http://localhost:8000."
         )
-    if "localhost" not in contract.constraints.allowed_domains:
+    if set(contract.constraints.allowed_domains) != {"localhost"}:
         raise DemoExecutionError(
-            "The confirmed contract must explicitly allow the localhost demo domain."
+            "The confirmed contract must allow only the localhost demo domain."
         )
     return base_url
 
