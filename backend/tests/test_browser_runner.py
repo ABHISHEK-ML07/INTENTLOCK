@@ -133,3 +133,9 @@ def test_playwright_runs_three_local_scenarios_end_to_end(tmp_path, monkeypatch)
         except subprocess.TimeoutExpired:
             process.kill()
             process.wait(timeout=5)
+
+
+def test_browser_demo_rejects_extra_allowlisted_domain():
+    contract = confirmed_demo_contract(("localhost", "example.com"))
+    with pytest.raises(DemoExecutionError, match="only the localhost"):
+        _demo_base_url(contract)
