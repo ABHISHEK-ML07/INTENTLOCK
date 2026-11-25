@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from decimal import Decimal
 from enum import StrEnum
+import re
 from typing import Any
 from uuid import uuid4
 
@@ -84,7 +85,7 @@ class ContractConstraints(StrictModel):
         result: list[str] = []
         for value in values:
             domain = value.lower().strip().rstrip(".")
-            if not domain or ":" in domain or "/" in domain or "@" in domain:
+            if not re.fullmatch(r"[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)*", domain):
                 raise ValueError(f"Invalid domain: {value}")
             if domain not in result:
                 result.append(domain)
@@ -140,6 +141,16 @@ class ActionProposal(StrictModel):
     resource_id: str | None = Field(default=None, max_length=120)
     evidence: list[EvidenceRecord] = Field(default_factory=list)
     user_approval_granted: bool = False
+
+    @model_validator(mode="after")
+    def require_action_context(self) -> "ActionProposal":
+        # Every browser operation needs an explicit page context. Offer
+        # recommendations can instead be bound to offer-specific evidence.
+        if self.action_type != ActionType.RECOMMEND_OFFER and self.target_url is None:
+            raise ValueError("Browser actions require a target_url so the policy gateway can enforce the domain allow-list")
+        if self.action_type == ActionType.RECOMMEND_OFFER and not self.resource_id:
+            raise ValueError("Offer recommendations require a resource_id")
+        return self
 
 
 class PolicyEvaluationRequest(StrictModel):
