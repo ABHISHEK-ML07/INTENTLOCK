@@ -2,127 +2,97 @@
 
 **The Constraint Integrity Engine for the Autonomous Web**
 
-INTENTLOCK is a proposed browser-automation safety layer for keeping autonomous web tasks faithful to a user's confirmed instructions. It focuses on three related risks:
+INTENTLOCK is a hackathon prototype for preserving a user's confirmed constraints during autonomous browser tasks. It focuses on instruction integrity, information integrity and action integrity.
 
-1. **Instruction integrity** — a webpage may contain malicious or irrelevant instructions that try to redirect an agent.
-2. **Information integrity** — marketing claims may conflict with the actual terms, selected offer, or final checkout state.
-3. **Action integrity** — an agent may attempt an action the user did not authorise.
+## Current implementation
 
-> **Project status:** Hackathon prototype in development. The capabilities described below are the intended design and MVP scope; they should not be interpreted as already implemented or independently validated.
+- Deterministic natural-language contract proposal compiler
+- User confirmation flow and SHA-256 contract hash
+- Deterministic ALLOW / DENY / PAUSE policy engine
+- Three synthetic local hotel websites representing valid, misleading and adversarial cases
+- Playwright browser runner restricted to the localhost demo
+- FastAPI backend and SQLite contract storage
+- React + TypeScript judge dashboard with contract review, execution results, evidence ledger and session activity log
 
-## The idea
+**Prototype boundary:** The compiler is rule-based, not LLM-powered. Evidence is extracted from the controlled synthetic websites, not arbitrary real websites. The dashboard activity log is session-side, not a tamper-resistant audit service. The system is not a production browser or a guarantee against all agent threats.
 
-A user might ask:
+## Run locally (Windows)
 
-> Find a refundable hotel within 5 km for less than ₹5,000 total. Compare options, but do not book or pay.
+You need Python 3.11+, Node.js 20+, and npm.
 
-INTENTLOCK is designed to turn that request into a user-confirmed contract, gather evidence for important claims, check browser actions against the contract, and verify the final result.
+### Terminal 1 — backend
 
-## Three core components
+```powershell
+cd INTENTLOCK\backend
+conda create -n intentlock python=3.11 -y
+conda activate intentlock
+pip install -r requirements.txt
+python -m playwright install chromium
+uvicorn app.main:app --reload
+```
 
-### 1. Intent Contract Compiler
+The backend API is at http://localhost:8000. Open http://localhost:8000/docs for API documentation or http://localhost:8000/demo to inspect the three mock hotel pages.
 
-Converts a natural-language request into structured constraints, such as:
+### Terminal 2 — frontend dashboard
 
-- Maximum total price: ₹5,000
-- Maximum distance: 5 km
-- Cancellation: refundable
-- Booking: not authorised
-- Payment: not authorised
+```powershell
+cd INTENTLOCK\frontend
+npm install
+npm run dev
+```
 
-The user reviews and confirms the contract before execution. The system should not silently change the confirmed constraints in response to webpage content.
+Open **http://localhost:5173**.
 
-### 2. Evidence Provenance Engine
+## Dashboard flow
 
-Collects and records the evidence behind decision-critical claims. For the hotel example, this may include:
+1. Enter the task in natural language. The example task is already filled in.
+2. Compile the proposal and review the extracted constraints.
+3. Confirm the contract. It cannot be confirmed if clarification is still required.
+4. Run the protected browser demonstration.
+5. Inspect each hotel's ALLOW / DENY result, evidence sources, policy conflict and simulated blocked booking.
+6. Open Evidence Ledger and Activity Log to review the run.
 
-- The selected room's cancellation conditions
-- The selected offer's price
-- The final checkout total, including fees and taxes
-- The source URL and time at which the evidence was captured
+The local demo domain should remain `localhost`. Do not add real websites, credentials or personal data.
 
-Conflicting or insufficient evidence should be marked accordingly rather than presented as verified fact. A marketing badge alone is not sufficient proof of a room's cancellation terms.
+## Three demo scenarios
 
-### 3. Policy-Enforced Execution Gateway
+| Site | Scenario | Expected policy result |
+|---|---|---|
+| Cedar Grove Hotel | Refundable, 3.2 km, ₹4,499 final total | ALLOW |
+| Metro Crown Inn | Marketing badge says free cancellation; selected room is non-refundable | DENY |
+| Lakeview Residency | Hidden untrusted page instruction; ₹5,299 final total | DENY |
 
-Checks agent-controlled browser actions against the confirmed contract. The intended decision model is:
+No real booking or payment action exists in the demonstration. A simulated booking proposal on the adversarial scenario is evaluated by the policy engine and must be denied before any browser action is dispatched.
 
-- **Allow** actions within the confirmed scope
-- **Block** actions that violate the contract
-- **Pause** when user approval or additional evidence is required
+## Verification
 
-The final state is checked against the original constraints, and decisions are recorded in an audit trail.
+Backend tests (including the Playwright end-to-end scenario):
 
-## Planned workflow
+```powershell
+cd backend
+pytest -q
+```
 
-1. User describes a task in natural language.
-2. Intent compiler proposes a structured contract.
-3. User reviews and confirms the contract.
-4. Browser automation visits the permitted websites.
-5. Evidence engine extracts and checks decision-critical claims.
-6. Policy gateway evaluates actions before they execute.
-7. Final-state verification checks the result against the contract.
-8. An audit record explains the outcome and supporting evidence.
+Frontend production build:
 
-## Proposed technology stack
+```powershell
+cd frontend
+npm install
+npm run build
+```
 
-| Layer | Planned technology |
-|---|---|
-| Frontend | Next.js, TypeScript, Tailwind CSS |
-| Backend | Python, FastAPI |
-| Browser automation | Playwright |
-| Intent extraction | LLM with structured outputs |
-| Contract validation and policy | Pydantic and deterministic Python rules |
-| Evidence collection | DOM and accessibility-tree extraction, source and state checks |
-| Cloud policy service | AWS Lambda |
-| Audit storage | Amazon DynamoDB |
-| Local development/fallback | SQLite |
-| Spoken explanations (optional) | ElevenLabs |
+GitHub Actions workflows run the backend tests and frontend build separately.
 
-The LLM is intended to interpret language and help extract candidate information. Deterministic application code is intended to validate the contract and make policy decisions.
+## Architecture
 
-## Hackathon MVP scope
-
-The initial demonstration is deliberately narrow: a controlled hotel-comparison workflow across mock websites.
-
-Planned scenarios:
-
-- A legitimate refundable offer within the user's constraints
-- A misleading “free cancellation” banner contradicted by the selected room's policy
-- A final checkout total that exceeds the user's price ceiling
-- A webpage containing instructions that attempt to redirect the agent
-- An attempt to book, pay, or disclose information without authorisation
-
-The prototype should demonstrate both safe rejection and successful completion of legitimate tasks. It is not intended to process real payments or use real personal credentials.
-
-## Evaluation plan
-
-We plan to compare a baseline browser agent with the same agent operating through INTENTLOCK, using the same model, tools, websites, prompts, and test scenarios.
-
-Initial measures:
-
-- **Constraint preservation:** proportion of completed results satisfying every hard constraint
-- **Unauthorised action rate:** prohibited actions that actually execute
-- **Evidence completeness:** decision-critical claims with traceable supporting evidence
-- **Benign task completion:** legitimate tasks completed successfully
-- **False rejection rate:** legitimate actions incorrectly blocked
-
-The initial test set is planned to include clean and adversarial scenarios with repeated runs. Results will be reported as measured; no performance claims are made in advance.
-
-## Security boundaries and limitations
-
-INTENTLOCK is designed to enforce decisions at the browser-execution boundary it controls. It must not be described as a guarantee against every browser vulnerability, malicious script, model failure, or data leak through an external agent service.
-
-The prototype should use isolated browser sessions, mock websites, synthetic data, and restricted network access. If policy authorisation cannot be verified, sensitive actions should fail closed.
-
-## Repository status
-
-This repository is the starting point for the INTENTLOCK hackathon prototype. Implementation, test cases, architecture details, and measured results will be added as they are built and verified.
+- **Intent Contract Compiler:** proposes structured constraints; it does not authorize actions.
+- **Policy Engine:** deterministic gate for navigation and offer recommendations.
+- **Evidence Collector:** reads selected-room policy, final checkout total and distance from controlled demo HTML.
+- **Playwright runner:** browser execution for local demo pages, with a policy check before each navigation.
+- **Dashboard:** user-facing review and result visualization.
 
 ## Track
 
 **wHACKiest 2026 — Beyond the Browser**
 
----
-
-*Build principle: LLMs interpret. Deterministic code validates and decides. The controlled browser executes. The system verifies the outcome.*
+*Build principle: LLMs interpret. Deterministic code validates and decides. The controlled browser executes. The verifier checks the outcome.*
