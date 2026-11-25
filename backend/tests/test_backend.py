@@ -195,7 +195,7 @@ def test_health_endpoint():
 def test_proposal_cannot_be_confirmed_when_clarification_is_pending():
     response = client.post("/contracts/propose", json={
         "task": "Find a refundable hotel under ₹5,000 within 5 km.",
-        "allowed_domains": ["hotels.demo.local"],
+        "allowed_domains": ["localhost"],
     })
     assert response.status_code == 201
     proposed = response.json()
@@ -211,7 +211,7 @@ def test_proposal_cannot_be_confirmed_when_clarification_is_pending():
 def test_valid_proposal_can_be_confirmed_and_hashed():
     response = client.post("/contracts/propose", json={
         "task": "Find a refundable hotel within 5 km for under ₹5,000 total. Do not book or pay.",
-        "allowed_domains": ["hotels.demo.local"],
+        "allowed_domains": ["localhost"],
     })
     assert response.status_code == 201
     proposed = response.json()
