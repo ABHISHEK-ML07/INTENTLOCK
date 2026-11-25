@@ -91,6 +91,7 @@ async def run_hotel_demo(contract: IntentContract) -> DemoRunResponse:
                 meta = page.get_by_test_id("hotel-meta")
                 room_id = await meta.get_attribute("data-room-id")
                 distance = await meta.get_attribute("data-distance-km")
+                base_price = await page.get_by_test_id("base-price").get_attribute("data-amount")
                 banner = page.get_by_test_id("marketing-refundability")
                 marketing_text = (await banner.inner_text()).strip()
                 marketing_refundable = (await banner.get_attribute("data-refundable")) == "true"
@@ -206,7 +207,7 @@ async def run_hotel_demo(contract: IntentContract) -> DemoRunResponse:
                     room_id=room_id or "unknown",
                     marketing_cancellation_claim=marketing_text,
                     detailed_cancellation_policy=policy_text,
-                    base_price_inr="",
+                    base_price_inr=base_price or "unknown",
                     final_total_inr=final_total or "unknown",
                     distance_km=distance or "unknown",
                     marketing_policy_conflict=conflict,
