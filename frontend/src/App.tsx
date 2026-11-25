@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import {
   Activity, ArrowDownRight, ArrowRight, ArrowUpRight, BadgeCheck,
-  Ban, BookOpen, Check, CheckCircle2, ChevronDown, ChevronRight,
+  Ban, Check, CheckCircle2, ChevronDown, ChevronRight,
   CircleAlert, Clock3, Command, Compass, ExternalLink, FileCheck2,
-  Fingerprint, Globe2, Layers3, LockKeyhole, Menu, Play, Plus,
-  RefreshCw, Shield, ShieldAlert, ShieldCheck, Sparkles, Terminal,
+  Fingerprint, Globe2, Layers3, LockKeyhole, Menu, Play,
+  RefreshCw, Shield, ShieldAlert, ShieldCheck, Sparkles,
   Wallet, X, Zap,
 } from "lucide-react";
 
@@ -440,7 +440,7 @@ function App() {
           )}
 
           {activeView === "evidence" && (
-            <EvidenceView report={report} onReturn={() => setActiveView("overview")}/>
+            <EvidenceView report={report} maxPrice={contract?.constraints.max_total_price?.amount} onReturn={() => setActiveView("overview")}/>
           )}
 
           {activeView === "activity" && (
@@ -457,7 +457,7 @@ function App() {
   );
 }
 
-function Constraint({ icon, label, value, detail }: { icon: React.ReactNode; label: string; value: string; detail: string }) {
+function Constraint({ icon, label, value, detail }: { icon: ReactNode; label: string; value: string; detail: string }) {
   return <div className="constraint-tile"><div className="constraint-head">{icon}<span>{label}</span></div><strong>{value}</strong><small>{detail}</small></div>;
 }
 
@@ -496,7 +496,7 @@ function OfferCard({ offer }: { offer: Offer }) {
   );
 }
 
-function EvidenceView({ report, onReturn }: { report: DemoReport | null; onReturn: () => void }) {
+function EvidenceView({ report, maxPrice, onReturn }: { report: DemoReport | null; maxPrice?: string | number; onReturn: () => void }) {
   if (!report) return <div className="empty-state"><div className="empty-icon"><FileCheck2 size={25}/></div><h3>No evidence captured yet</h3><p>Run the protected browser comparison to populate the evidence ledger with offer policies, checkout totals and source locations.</p><button className="button button-primary" onClick={onReturn}>Go to mission control <ArrowRight size={15}/></button></div>;
   return (
     <section className="evidence-page">
