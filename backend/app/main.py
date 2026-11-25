@@ -7,6 +7,9 @@ from datetime import datetime, timezone
 from fastapi import FastAPI, HTTPException
 
 from app.compiler import compile_contract
+from app.browser.runner import DemoExecutionError, run_hotel_demo
+from app.demo_models import DemoRunRequest, DemoRunResponse
+from app.demo_sites import router as demo_sites_router
 from app.models import (
     CompileRequest, ConfirmContractRequest, ContractStatus, HealthResponse,
     IntentContract, PolicyDecision, PolicyEvaluationRequest
@@ -87,3 +90,19 @@ def evaluate_policy(request: PolicyEvaluationRequest) -> PolicyDecision:
     except ContractNotFoundError as exc:
         raise HTTPException(status_code=404, detail="Contract not found") from exc
     return evaluate_action(contract, request.action)
+
+
+app.include_router(demo_sites_router)
+
+
+@app.post("/browser/run-demo", response_model=DemoRunResponse)
+async def run_browser_demo(request: DemoRunRequest) -> DemoRunResponse:
+    """Run the controlled, localhost-only three-hotel Playwright demonstration."""
+    try:
+        contract = store.get(request.contract_id)
+    except ContractNotFoundError as exc:
+        raise HTTPException(status_code=404, detail="Contract not found") from exc
+    try:
+        return await run_hotel_demo(contract)
+    except DemoExecutionError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
