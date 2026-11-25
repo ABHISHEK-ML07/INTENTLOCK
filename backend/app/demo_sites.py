@@ -103,7 +103,7 @@ def hotel_details(hotel_id: str):
         <strong>Selected room:</strong> {h["room_id"]}<br>
         <strong>Distance from demo venue:</strong> <span data-testid="distance">{h["distance"]} km</span>
       </div>
-      <p>Advertised starting price: <strong>₹{h["base_price"]}</strong></p>
+      <p>Advertised starting price: <strong data-testid="base-price" data-amount="{h["base_price"]}">₹{h["base_price"]}</strong></p>
       <p><a href="/demo/{hotel_id}/policy">Read selected-room cancellation policy</a></p>
       <p><a href="/demo/{hotel_id}/checkout">Review final checkout total</a></p>
       {injection}
