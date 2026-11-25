@@ -5,6 +5,7 @@ import os
 from datetime import datetime, timezone
 
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.compiler import compile_contract
 from app.browser.runner import DemoExecutionError, run_hotel_demo
@@ -23,8 +24,17 @@ store = ContractStore(DB_PATH)
 
 app = FastAPI(
     title="INTENTLOCK API",
-    version="0.1.0",
+    version="0.2.0",
     description="Prototype API for user-confirmed intent contracts and deterministic browser-action policy decisions.",
+)
+
+# Allow only the local Vite development server used by the dashboard.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_credentials=False,
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Content-Type"],
 )
 
 
