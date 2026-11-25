@@ -46,3 +46,29 @@ def test_unknown_demo_hotel_returns_404():
 def test_browser_demo_endpoint_requires_existing_contract():
     response = client.post("/browser/run-demo", json={"contract_id": "missing-contract"})
     assert response.status_code == 404
+
+
+def test_contract_proposal_rejects_external_domains():
+    response = client.post(
+        "/contracts/propose",
+        json={
+            "task": "Find a refundable hotel within 5 km for under ₹5,000 total.",
+            "allowed_domains": ["localhost", "example.com"],
+        },
+    )
+    assert response.status_code == 400
+    assert "only permits the localhost" in response.json()["detail"]
+
+
+def test_cors_allows_only_local_dashboard_origins():
+    allowed = client.get(
+        "/health",
+        headers={"Origin": "http://127.0.0.1:5173"},
+    )
+    assert allowed.headers["access-control-allow-origin"] == "http://127.0.0.1:5173"
+
+    blocked = client.get(
+        "/health",
+        headers={"Origin": "https://untrusted.example"},
+    )
+    assert "access-control-allow-origin" not in blocked.headers
